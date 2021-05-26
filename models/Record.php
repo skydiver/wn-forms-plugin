@@ -2,11 +2,11 @@
 
 namespace Martin\Forms\Models;
 
-use Model;
+use Winter\Storm\Database\Model;
 
 class Record extends Model
 {
-    use \October\Rain\Database\Traits\SoftDelete;
+    use \Winter\Storm\Database\Traits\SoftDelete;
 
     public $table = 'martin_forms_records';
 

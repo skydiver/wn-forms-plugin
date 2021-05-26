@@ -2,15 +2,15 @@
 
 namespace Martin\Forms\Controllers;
 
-use App;
-use Lang;
-use BackendMenu;
 use Backend\Facades\Backend;
 use Martin\Forms\Classes\GDPR;
 use Backend\Classes\Controller;
 use Martin\Forms\Models\Record;
+use Backend\Facades\BackendMenu;
+use Illuminate\Support\Facades\App;
+use Illuminate\Support\Facades\Lang;
 use Martin\Forms\Classes\UnreadRecords;
-use October\Rain\Support\Facades\Flash;
+use Winter\Storm\Support\Facades\Flash;
 use Illuminate\Support\Facades\Redirect;
 
 class Records extends Controller
@@ -32,10 +32,12 @@ class Records extends Controller
     public function view($id)
     {
         $record = Record::find($id);
+
         if (!$record) {
             Flash::error(e(trans('martin.forms::lang.controllers.records.error')));
             return Redirect::to(Backend::url('martin/forms/records'));
         }
+
         $record->unread = false;
         $record->save();
         $this->addCss('/plugins/martin/forms/assets/css/records.css');

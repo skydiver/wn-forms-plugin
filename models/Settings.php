@@ -2,11 +2,11 @@
 
 namespace Martin\Forms\Models;
 
-use Model;
+use Winter\Storm\Database\Model;
 
 class Settings extends Model
 {
-    use \October\Rain\Database\Traits\Validation;
+    use \Winter\Storm\Database\Traits\Validation;
 
     public $implement      = ['System.Behaviors.SettingsModel'];
     public $settingsCode   = 'martin_forms_settings';
