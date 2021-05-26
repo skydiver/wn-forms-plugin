@@ -8,7 +8,7 @@ use Winter\Storm\Database\Collection;
 use Winter\Storm\Support\Facades\Mail;
 use Martin\Forms\Classes\BackendHelpers as BH;
 
-class Notification
+class Notification implements Mailable
 {
     private $properties;
     private $post;
