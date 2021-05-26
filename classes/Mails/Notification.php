@@ -2,10 +2,10 @@
 
 namespace Martin\Forms\Classes\Mails;
 
-use Mail;
 use Martin\Forms\Models\Record;
 use System\Models\MailTemplate;
-use October\Rain\Database\Collection;
+use Winter\Storm\Database\Collection;
+use Winter\Storm\Support\Facades\Mail;
 use Martin\Forms\Classes\BackendHelpers as BH;
 
 class Notification

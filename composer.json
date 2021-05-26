@@ -1,8 +1,8 @@
 {
-    "name": "martin/forms-plugin",
-    "type": "october-plugin",
+    "name": "martin/wn-magic-forms-plugin",
+    "type": "winter-plugin",
     "description": "Create easy (and almost magic) AJAX forms",
-    "keywords": ["october", "cms", "plugin", "forms", "magic forms"],
-    "homepage": "https://octobercms.com/plugin/martin-forms",
+    "keywords": ["winter", "cms", "plugin", "forms", "magic forms"],
+    "homepage": "https://github.com/skydiver/wn-magic-forms/",
     "license": "MIT"
 }

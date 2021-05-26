@@ -2,23 +2,23 @@
 
 namespace Martin\Forms\Classes;
 
-use App;
-use Lang;
-use Config;
-use Request;
-use Session;
-use Redirect;
-use Validator;
-use AjaxException;
 use Cms\Classes\ComponentBase;
 use Martin\Forms\Models\Record;
 use Martin\Forms\Models\Settings;
+use Illuminate\Support\Facades\App;
+use Illuminate\Support\Facades\Lang;
 use Illuminate\Support\Facades\Event;
+use Winter\Storm\Validation\Validator;
+use Illuminate\Support\Facades\Request;
+use Illuminate\Support\Facades\Session;
+use Illuminate\Support\Facades\Redirect;
 use Martin\Forms\Classes\BackendHelpers;
+use Winter\Storm\Support\Facades\Config;
+use Winter\Storm\Exception\AjaxException;
 use Martin\Forms\Classes\FilePond\FilePond;
 use Martin\Forms\Classes\Mails\AutoResponse;
 use Martin\Forms\Classes\Mails\Notification;
-use October\Rain\Exception\ValidationException;
+use Winter\Storm\Exception\ValidationException;
 
 abstract class MagicForm extends ComponentBase
 {
