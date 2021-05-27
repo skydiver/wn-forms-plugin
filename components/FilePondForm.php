@@ -17,6 +17,14 @@ class FilePondForm extends MagicForm
     public function defineProperties()
     {
         $local = [
+            'mail_uploads' => [
+                'title'             => 'martin.forms::lang.components.shared.mail_uploads.title',
+                'description'       => 'martin.forms::lang.components.shared.mail_uploads.description',
+                'type'              => 'checkbox',
+                'default'           => false,
+                'group'             => 'martin.forms::lang.components.shared.group_mail',
+                'showExternalParam' => false
+            ],
             'uploader_enable' => [
                 'title'             => 'martin.forms::lang.components.shared.uploader_enable.title',
                 'description'       => 'martin.forms::lang.components.shared.uploader_enable.description',
@@ -25,13 +33,13 @@ class FilePondForm extends MagicForm
                 'group'             => 'martin.forms::lang.components.shared.group_uploader',
                 'showExternalParam' => false,
             ],
-            'mail_uploads' => [
-                'title'             => 'martin.forms::lang.components.shared.mail_uploads.title',
-                'description'       => 'martin.forms::lang.components.shared.mail_uploads.description',
-                'type'              => 'checkbox',
-                'default'           => false,
-                'group'             => 'martin.forms::lang.components.shared.group_mail',
-                'showExternalParam' => false
+            'uploader_filesize' => [
+                'title'             => 'martin.forms::lang.components.shared.uploader_filesize.title',
+                'description'       => 'martin.forms::lang.components.shared.uploader_filesize.description',
+                'default'           => '5MB',
+                'type'              => 'string',
+                'group'             => 'martin.forms::lang.components.shared.group_uploader',
+                'showExternalParam' => false,
             ],
         ];
 

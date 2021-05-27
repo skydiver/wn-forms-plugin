@@ -1,13 +1,18 @@
 {% if __SELF__.property('uploader_enable') == 1 %}
 <link href="https://unpkg.com/filepond/dist/filepond.css" rel="stylesheet">
+<script src="https://unpkg.com/filepond-plugin-file-validate-size/dist/filepond-plugin-file-validate-size.js"></script>
 <script src="https://unpkg.com/filepond/dist/filepond.js"></script>
 
 <script>
     const inputElement = document.querySelector('input[type="file"]');
 
+    FilePond.registerPlugin(FilePondPluginFileValidateSize);
+
     const pond = FilePond.create(inputElement, {
         onaddfilestart: (file) => { isLoadingCheck(); },
-        onprocessfile: (files) => { isLoadingCheck(); }
+        onprocessfile: (files) => { isLoadingCheck(); },
+        allowFileSizeValidation: true,
+        maxFileSize: '{{ __SELF__.property("uploader_filesize") }}',
     });
 
     FilePond.setOptions({
@@ -24,7 +29,8 @@
     });
 
     function isLoadingCheck() {
-        var isLoading = pond.getFiles().filter(x=>x.status !== 5).length !== 0;
+        const isLoading = pond.getFiles().filter(x => x.status !== 5).length !== 0;
+
         if (isLoading) {
             $('form [type="submit"]').attr("disabled", "disabled");
         } else {
@@ -32,4 +38,10 @@
         }
     }
 </script>
+
+<style>
+.filepond--root {
+    font-size: 1.2rem;
+}
+</style>
 {% endif %}
