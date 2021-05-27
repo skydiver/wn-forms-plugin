@@ -43,12 +43,14 @@
 
     <hr>
 
+{% if __SELF__.property('uploader_enable') == 1 %}
     <div class="form-group">
         <h4>Upload your resume</h4>
         <input type="file" name="files" multiple>
     </div>
 
     <hr>
+{% endif %}
 
     <div class="form-group">
         {% partial '@recaptcha' %}

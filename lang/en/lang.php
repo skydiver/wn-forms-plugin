@@ -68,7 +68,7 @@
                 'description' => 'Create a empty template for your custom form; override component HTML.',
             ],
             'filepond_form' => [
-                'name'        => 'Upload AJAX Form [BETA]',
+                'name'        => 'Upload AJAX Form',
                 'description' => 'Sample AJAX form with upload capabilities using FilePond.',
             ],
             'shared' => [

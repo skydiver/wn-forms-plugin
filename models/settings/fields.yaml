@@ -29,7 +29,7 @@ tabs:
 
         global_allowed_files:
             label       : Allowed file formats
-            type        : text
+            type        : taglist
             default     : jpg,jpeg,bmp,png,webp,gif,js,ico,css,ics,odt,doc,docx,ppt,pptx,pdf,txt,xml,ods,xls,xlsx,ttf,flv,wmv,mp3,ogg,wav,avi,mov,mp4,mpeg,webm,mkv,rar,xml,zip
             tab         : martin.forms::lang.settings.tabs.general
 
