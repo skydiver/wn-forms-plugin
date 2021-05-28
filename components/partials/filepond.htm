@@ -11,6 +11,8 @@
     const pond = FilePond.create(inputElement, {
         onaddfilestart: (file) => { isLoadingCheck(); },
         onprocessfile: (files) => { isLoadingCheck(); },
+        onremovefile: (files) => { isLoadingCheck(); },
+        onupdatefiles: (files) => { isLoadingCheck(); },
         allowFileSizeValidation: true,
         maxFileSize: '{{ __SELF__.property("uploader_filesize") }}',
     });
