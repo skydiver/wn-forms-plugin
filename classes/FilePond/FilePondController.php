@@ -39,6 +39,14 @@ class FilePondController extends BaseController
         $input = $request->file($field);
         $this->file = is_array($input) ? $input[0] : $input;
 
+
+        /** VALIDATE UPLOAD FILE SIZE */
+        if ($this->checkInvalidSize()) {
+            return Response::make('File size not allowed', 422, [
+                'Content-Type' => 'text/plain',
+            ]);
+        }
+
         /** VALIDATE UPLOAD FILE TYPE */
         if ($this->checkInvalidFile()) {
             return Response::make('File type not allowed', 422, [
@@ -114,7 +122,25 @@ class FilePondController extends BaseController
     }
 
     /**
-     * Check if uploaded file is a valid mime type
+     * Check if uploaded file has a valid size
+     *
+     * @return boolean
+     */
+    private function checkInvalidSize(): bool
+    {
+        $max_size = Settings::get('global_allowed_filesize', 10000);
+
+        $field = $this->getUploadFieldName();
+
+        $validator = Validator::make(request()->all(), [
+            $field . '.*' => 'max:' . $max_size,
+        ]);
+
+        return $validator->fails();
+    }
+
+    /**
+     * Check if uploaded file has a valid mime type
      *
      * @return boolean
      */
