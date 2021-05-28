@@ -27,11 +27,19 @@ tabs:
             tab     : martin.forms::lang.settings.tabs.general
             cssClass: m-t-lg
 
+        global_allowed_filesize:
+            label       : Max upload size (in kilobytes)
+            type        : number
+            default     : 10000
+            tab         : martin.forms::lang.settings.tabs.general
+            span        : left
+
         global_allowed_files:
             label       : Allowed file formats
             type        : taglist
             default     : jpg,jpeg,bmp,png,webp,gif,js,ico,css,ics,odt,doc,docx,ppt,pptx,pdf,txt,xml,ods,xls,xlsx,ttf,flv,wmv,mp3,ogg,wav,avi,mov,mp4,mpeg,webm,mkv,rar,xml,zip
             tab         : martin.forms::lang.settings.tabs.general
+            span        : right
 
         recaptcha_help:
             type   : partial
