@@ -2,6 +2,7 @@
 
 namespace Martin\Forms\Models;
 
+use Backend\Facades\Backend;
 use Winter\Storm\Database\Model;
 
 class Record extends Model
@@ -29,5 +30,12 @@ class Record extends Model
     public function getGroupsOptions()
     {
         return $this->filterGroups();
+    }
+
+    public function filesList()
+    {
+        return $this->files->map(function ($file) {
+            return Backend::url('martin/forms/records/download', [$this->id, $file->id]);
+        })->implode(',');
     }
 }

@@ -2,12 +2,11 @@
 
 namespace Martin\Forms\Controllers;
 
-use Response;
-use BackendMenu;
 use SplTempFileObject;
 use League\Csv\AbstractCsv;
 use Backend\Classes\Controller;
 use Martin\Forms\Models\Record;
+use Backend\Facades\BackendMenu;
 use League\Csv\Writer as CsvWriter;
 
 class Exports extends Controller
@@ -53,7 +52,7 @@ class Exports extends Controller
         }
 
         // FILTER DELETED
-        if ($deleted = post('Record.options_deleted')) {
+        if (post('Record.options_deleted')) {
             $records->withTrashed();
         }
 
@@ -89,11 +88,14 @@ class Exports extends Controller
         $record = $filteredRecords->first();
         $headers = array_merge($headers, array_keys($record->form_data_arr));
 
+        // ADD FILES HEADER
+        $headers[] = e(trans('martin.forms::lang.controllers.records.columns.files'));
+
         // ADD HEADERS
         $csv->insertOne($headers);
 
         // WRITE CSV LINES
-        foreach ($records->get()->toArray() as $row) {
+        foreach ($records->get() as $row) {
             $data = (array) json_decode($row['form_data']);
 
             // IF DATA IS ARRAY CONVERT TO JSON STRING
@@ -106,6 +108,11 @@ class Exports extends Controller
             // ADD METADATA IF NEEDED
             if (post('Record.options_metadata')) {
                 array_unshift($data, $row['id'], $row['group'], $row['ip'], $row['created_at']);
+            }
+
+            // ADD ATTACHED FILES
+            if (count($row->files) > 0) {
+                $data[] = $row->filesList();
             }
 
             $csv->insertOne($data);
