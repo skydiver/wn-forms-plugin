@@ -51,6 +51,8 @@ return [
             'options_metadata'      => 'Include metadata',
             'options_metadata_com'  => 'Export records with metadata (Record ID, group, IP, created date)',
             'options_deleted'       => 'Include deleted records',
+            'options_files'         => 'Include attached files',
+            'options_files_com'     => 'Only download URLs will be exported',
             'options_delimiter'     => 'Use alternative delimiter',
             'options_delimiter_com' => 'Use semicolon as delimiter',
             'options_utf'           => 'Encode in UTF8',

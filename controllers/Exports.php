@@ -89,7 +89,9 @@ class Exports extends Controller
         $headers = array_merge($headers, array_keys($record->form_data_arr));
 
         // ADD FILES HEADER
-        $headers[] = e(trans('martin.forms::lang.controllers.records.columns.files'));
+        if (post('Record.options_files')) {
+            $headers[] = e(trans('martin.forms::lang.controllers.records.columns.files'));
+        }
 
         // ADD HEADERS
         $csv->insertOne($headers);
@@ -111,7 +113,7 @@ class Exports extends Controller
             }
 
             // ADD ATTACHED FILES
-            if (count($row->files) > 0) {
+            if (post('Record.options_files') && $row->files->count() > 0) {
                 $data[] = $row->filesList();
             }
 
