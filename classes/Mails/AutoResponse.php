@@ -2,9 +2,9 @@
 
 namespace Martin\Forms\Classes\Mails;
 
-use Mail;
 use Martin\Forms\Models\Record;
 use System\Models\MailTemplate;
+use Winter\Storm\Support\Facades\Mail;
 use Martin\Forms\Classes\BackendHelpers;
 
 class AutoResponse implements Mailable
