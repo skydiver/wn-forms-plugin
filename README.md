@@ -1,4 +1,4 @@
-![](https://banners.beyondco.de/Magic%20Forms%20for%20WinterCMS.png?theme=light&packageManager=composer+require&packageName=martin%2Fwn-magic-forms&pattern=architect&style=style_1&description=Create+easy+%28and+almost+magic%29+forms&md=1&showWatermark=0&fontSize=100px&images=lightning-bolt)
+![](https://banners.beyondco.de/Magic%20Forms%20for%20WinterCMS.png?theme=light&packageManager=composer+require&packageName=martin%2Fwn-forms-plugin&pattern=architect&style=style_1&description=Create+easy+%28and+almost+magic%29+forms&md=1&showWatermark=0&fontSize=100px&images=lightning-bolt)
 
 
 ## Why Magic Forms?
