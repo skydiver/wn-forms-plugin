@@ -42,14 +42,16 @@ class FilePondController extends BaseController
 
         /** VALIDATE UPLOAD FILE SIZE */
         if ($this->checkInvalidSize()) {
-            return Response::make('File size not allowed', 422, [
+            $error = e(trans('martin.forms::lang.classes.FilePond.error_filesize'));
+            return Response::make($error, 422, [
                 'Content-Type' => 'text/plain',
             ]);
         }
 
         /** VALIDATE UPLOAD FILE TYPE */
         if ($this->checkInvalidFile()) {
-            return Response::make('File type not allowed', 422, [
+            $error = e(trans('martin.forms::lang.classes.FilePond.error_filetype'));
+            return Response::make($error, 422, [
                 'Content-Type' => 'text/plain',
             ]);
         }
@@ -64,7 +66,8 @@ class FilePondController extends BaseController
         $filePathParts = pathinfo($filePath);
 
         if (!$this->file->move($filePathParts['dirname'], $filePathParts['basename'])) {
-            return Response::make('Could not save file', 500, [
+            $error = e(trans('martin.forms::lang.classes.FilePond.error_savefile'));
+            return Response::make($error, 500, [
                 'Content-Type' => 'text/plain',
             ]);
         }
