@@ -33,14 +33,6 @@ class FilePondForm extends MagicForm
                 'group'             => 'martin.forms::lang.components.shared.group_uploader',
                 'showExternalParam' => false,
             ],
-            'uploader_filesize' => [
-                'title'             => 'martin.forms::lang.components.shared.uploader_filesize.title',
-                'description'       => 'martin.forms::lang.components.shared.uploader_filesize.description',
-                'default'           => '5MB',
-                'type'              => 'string',
-                'group'             => 'martin.forms::lang.components.shared.group_uploader',
-                'showExternalParam' => false,
-            ],
         ];
 
         return array_merge(parent::defineProperties(), $local);

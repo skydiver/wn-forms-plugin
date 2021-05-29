@@ -31,6 +31,10 @@ abstract class MagicForm extends ComponentBase
         $this->page['recaptcha_enabled']       = $this->isReCaptchaEnabled();
         $this->page['recaptcha_misconfigured'] = $this->isReCaptchaMisconfigured();
 
+        if ($this->property('uploader_enable')) {
+            $this->page['allowed_filesize'] = Settings::get('global_allowed_filesize');
+        }
+
         if ($this->isReCaptchaEnabled()) {
             $this->loadReCaptcha();
         }

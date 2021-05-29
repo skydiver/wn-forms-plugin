@@ -14,7 +14,7 @@
         onremovefile: (files) => { isLoadingCheck(); },
         onupdatefiles: (files) => { isLoadingCheck(); },
         allowFileSizeValidation: true,
-        maxFileSize: '{{ __SELF__.property("uploader_filesize") }}',
+        maxFileSize: '{{ allowed_filesize }}KB',
     });
 
     FilePond.setOptions({
