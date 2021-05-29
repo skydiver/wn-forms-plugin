@@ -1,0 +1,49 @@
+{% if __SELF__.property('uploader_enable') == 1 %}
+<link href="https://unpkg.com/filepond/dist/filepond.css" rel="stylesheet">
+<script src="https://unpkg.com/filepond-plugin-file-validate-size/dist/filepond-plugin-file-validate-size.js"></script>
+<script src="https://unpkg.com/filepond/dist/filepond.js"></script>
+
+<script>
+    const inputElement = document.querySelector('input[type="file"]');
+
+    FilePond.registerPlugin(FilePondPluginFileValidateSize);
+
+    const pond = FilePond.create(inputElement, {
+        onaddfilestart: (file) => { isLoadingCheck(); },
+        onprocessfile: (files) => { isLoadingCheck(); },
+        onremovefile: (files) => { isLoadingCheck(); },
+        onupdatefiles: (files) => { isLoadingCheck(); },
+        allowFileSizeValidation: true,
+        maxFileSize: '{{ allowed_filesize }}KB',
+    });
+
+    FilePond.setOptions({
+        name: 'files[]',
+        server: {
+            url: '/martin/forms',
+            process: '/process',
+            revert: '/process',
+            headers: {
+                'X-CSRF-TOKEN': '{{ form_token() }}',
+                'FILEPOND-FIELD': pond.name
+            }
+        }
+    });
+
+    function isLoadingCheck() {
+        const isLoading = pond.getFiles().filter(x => x.status !== 5).length !== 0;
+
+        if (isLoading) {
+            $('form [type="submit"]').attr("disabled", "disabled");
+        } else {
+            $('form [type="submit"]').removeAttr("disabled");
+        }
+    }
+</script>
+
+<style>
+.filepond--root {
+    font-size: 1.2rem;
+}
+</style>
+{% endif %}

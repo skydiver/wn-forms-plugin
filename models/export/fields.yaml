@@ -1,10 +1,5 @@
 fields:
 
-    header:
-        type: partial
-        path: $/martin/forms/models/export/_header.htm
-        span: left
-
     ################################################################################################################################################
     #   FILTER SECTION
     ################################################################################################################################################
@@ -79,6 +74,13 @@ fields:
 
     options_deleted:
         label  : martin.forms::lang.controllers.exports.options_deleted
+        span   : left
+        type   : switch
+        default: false
+
+    options_files:
+        label  : martin.forms::lang.controllers.exports.options_files
+        comment: martin.forms::lang.controllers.exports.options_files_com
         span   : left
         type   : switch
         default: false

@@ -1,3 +1,11 @@
+{% if __SELF__.property('uploader_enable') == 0 %}
+    <div style="margin-top: 2rem; padding: 10px; color:#a94442; background-color:#f2dede; border:solid 1px #ebccd1; border-radius:4px;">
+        <h5><strong>Warning</strong></h5>
+        <h6>Uploads are disabled.</h6>
+        <h6>You need to explicitly enable this option on the component (this is a security measure).</h6>
+    </div>
+{% endif %}
+
 {{ form_ajax(__SELF__ ~ '::onFormSubmit') }}
 
     <div id="{{ __SELF__ }}_forms_flash"></div>
@@ -35,12 +43,14 @@
 
     <hr>
 
+{% if __SELF__.property('uploader_enable') == 1 %}
     <div class="form-group">
         <h4>Upload your resume</h4>
-        {% partial '@file-upload' %}
+        <input type="file" name="files" multiple>
     </div>
 
     <hr>
+{% endif %}
 
     <div class="form-group">
         {% partial '@recaptcha' %}
@@ -49,3 +59,5 @@
     {{ form_submit() }}
 
 {{ form_close() }}
+
+{% partial '@filepond' %}

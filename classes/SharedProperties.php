@@ -4,9 +4,10 @@ namespace Martin\Forms\Classes;
 
 use Lang;
 
-trait SharedProperties {
-
-    public function defineProperties() {
+trait SharedProperties
+{
+    public function defineProperties()
+    {
         return [
             'group' => [
                 'title'             => 'martin.forms::lang.components.shared.group.title',
@@ -112,6 +113,13 @@ trait SharedProperties {
             'mail_resp_field' => [
                 'title'             => 'martin.forms::lang.components.shared.mail_resp_field.title',
                 'description'       => 'martin.forms::lang.components.shared.mail_resp_field.description',
+                'type'              => 'string',
+                'group'             => 'martin.forms::lang.components.shared.group_mail_resp',
+                'showExternalParam' => false
+            ],
+            'mail_resp_name' => [
+                'title'             => 'martin.forms::lang.components.shared.mail_resp_name.title',
+                'description'       => 'martin.forms::lang.components.shared.mail_resp_name.description',
                 'type'              => 'string',
                 'group'             => 'martin.forms::lang.components.shared.group_mail_resp',
                 'showExternalParam' => false
@@ -253,7 +261,4 @@ trait SharedProperties {
             ],
         ];
     }
-
 }
-
-?>

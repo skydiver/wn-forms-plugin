@@ -2,20 +2,23 @@
 
 namespace Martin\Forms\Classes;
 
-use Lang;
-use Config;
-use Request;
-use Session;
-use Redirect;
-use Validator;
-use AjaxException;
 use Cms\Classes\ComponentBase;
 use Martin\Forms\Models\Record;
 use Martin\Forms\Models\Settings;
-use Martin\Forms\Classes\SendMail;
+use Illuminate\Support\Facades\App;
+use Illuminate\Support\Facades\Lang;
 use Illuminate\Support\Facades\Event;
+use Illuminate\Support\Facades\Request;
+use Illuminate\Support\Facades\Session;
+use Illuminate\Support\Facades\Redirect;
 use Martin\Forms\Classes\BackendHelpers;
-use October\Rain\Exception\ValidationException;
+use Winter\Storm\Support\Facades\Config;
+use Winter\Storm\Exception\AjaxException;
+use Martin\Forms\Classes\FilePond\FilePond;
+use Winter\Storm\Support\Facades\Validator;
+use Martin\Forms\Classes\Mails\AutoResponse;
+use Martin\Forms\Classes\Mails\Notification;
+use Winter\Storm\Exception\ValidationException;
 
 abstract class MagicForm extends ComponentBase
 {
@@ -23,10 +26,14 @@ abstract class MagicForm extends ComponentBase
     use \Martin\Forms\Classes\ReCaptcha;
     use \Martin\Forms\Classes\SharedProperties;
 
-    public function onRun() {
-
+    public function onRun()
+    {
         $this->page['recaptcha_enabled']       = $this->isReCaptchaEnabled();
         $this->page['recaptcha_misconfigured'] = $this->isReCaptchaMisconfigured();
+
+        if ($this->property('uploader_enable')) {
+            $this->page['allowed_filesize'] = Settings::get('global_allowed_filesize');
+        }
 
         if ($this->isReCaptchaEnabled()) {
             $this->loadReCaptcha();
@@ -39,18 +46,18 @@ abstract class MagicForm extends ComponentBase
         if ($this->property('inline_errors') == 'display') {
             $this->addJs('assets/js/inline-errors.js');
         }
-
     }
 
-    public function settings() {
+    public function settings()
+    {
         return [
             'recaptcha_site_key'   => Settings::get('recaptcha_site_key'),
             'recaptcha_secret_key' => Settings::get('recaptcha_secret_key'),
         ];
     }
 
-    public function onFormSubmit() {
-
+    public function onFormSubmit()
+    {
         // FLASH PARTIAL
         $flash_partial = $this->property('messages_partial', '@flash.htm');
 
@@ -132,7 +139,7 @@ abstract class MagicForm extends ComponentBase
             if ($this->property('inline_errors') == 'display') {
                 throw new ValidationException($validator);
             } else {
-                throw new AjaxException($this->_exceptionResponse($validator, [
+                throw new AjaxException($this->exceptionResponse($validator, [
                     'status'  => 'error',
                     'type'    => 'danger',
                     'title'   => $message,
@@ -141,7 +148,6 @@ abstract class MagicForm extends ComponentBase
                     'jscript' => $this->property('js_on_error'),
                 ]));
             }
-
         }
 
         // IF FIRST VALIDATION IS OK, VALIDATE CAPTCHA vs GOOGLE
@@ -162,7 +168,7 @@ abstract class MagicForm extends ComponentBase
                 if ($this->property('inline_errors') == 'display') {
                     throw new ValidationException($validator);
                 } else {
-                    throw new AjaxException($this->_exceptionResponse($validator, [
+                    throw new AjaxException($this->exceptionResponse($validator, [
                         'status'  => 'error',
                         'type'    => 'danger',
                         'content' => Lang::get('martin.forms::lang.validation.recaptcha_error'),
@@ -170,13 +176,11 @@ abstract class MagicForm extends ComponentBase
                         'jscript' => $this->property('js_on_error'),
                     ]));
                 }
-
             }
-
         }
 
         // REMOVE EXTRA FIELDS FROM STORED DATA
-        unset($post['_token'], $post['g-recaptcha-response'], $post['_session_key'], $post['_uploader']);
+        unset($post['_token'], $post['g-recaptcha-response'], $post['_session_key'], $post['files']);
 
         // FIRE BEFORE SAVE EVENT
         Event::fire('martin.forms.beforeSaveRecord', [&$post, $this]);
@@ -192,22 +196,32 @@ abstract class MagicForm extends ComponentBase
         $record->created_at = date('Y-m-d H:i:s');
 
         // SAVE RECORD TO DATABASE
-        if (! $this->property('skip_database')) {
+        if (!$this->property('skip_database')) {
             $record->form_data = json_encode($post, JSON_UNESCAPED_UNICODE);
             if ($this->property('group') != '') {
                 $record->group = $this->property('group');
             }
+
+            // attach files
+            $this->attachFiles($record);
+
             $record->save(null, post('_session_key'));
         }
 
         // SEND NOTIFICATION EMAIL
         if ($this->property('mail_enabled')) {
-            SendMail::sendNotification($this->getProperties(), $post, $record, $record->files);
+            $notification = App::makeWith(Notification::class, [
+                $this->getProperties(), $post, $record, $record->files
+            ]);
+            $notification->send();
         }
 
         // SEND AUTORESPONSE EMAIL
         if ($this->property('mail_resp_enabled')) {
-            SendMail::sendAutoResponse($this->getProperties(), $post, $record);
+            $autoresponse = App::makeWith(AutoResponse::class, [
+                $this->getProperties(), $post, $record
+            ]);
+            $autoresponse->send();
         }
 
         // FIRE AFTER SAVE EVENT
@@ -233,11 +247,10 @@ abstract class MagicForm extends ComponentBase
             'content' => $message,
             'jscript' => $this->prepareJavaScript(),
         ])];
-
     }
 
-    private function _exceptionResponse($validator, $params) {
-
+    private function exceptionResponse($validator, $params)
+    {
         // FLASH PARTIAL
         $flash_partial = $this->property('messages_partial', '@flash.htm');
 
@@ -250,7 +263,6 @@ abstract class MagicForm extends ComponentBase
         }
 
         return $response;
-
     }
 
     private function prepareJavaScript()
@@ -271,12 +283,6 @@ abstract class MagicForm extends ComponentBase
         if ($this->property('reset_form')) {
             $params = ['id' => '#' . $this->alias . '_forms_flash'];
             $code .= $this->renderPartial('@js/reset-form.htm', $params);
-        }
-
-        /* RESET UPLOAD FORM */
-        if ($this->property('reset_form') && $this->property('uploader_enable')) {
-            $params = ['id' => $this->alias];
-            $code .= $this->renderPartial('@js/reset-uploader.htm', $params);
         }
 
         return $code;
@@ -304,5 +310,23 @@ abstract class MagicForm extends ComponentBase
         };
 
         return array_map($func, $array);
+    }
+
+    private function attachFiles(Record $record)
+    {
+        $files = post('files', null);
+
+        if (!$files) {
+            return;
+        }
+
+        foreach ($files as $file) {
+            $filepond = App::make(FilePond::class);
+            $filePath = $filepond->getPathFromServerId($file);
+
+            $record->files()->create([
+                'data' => $filePath
+            ], post('_session_key'));
+        }
     }
 }
