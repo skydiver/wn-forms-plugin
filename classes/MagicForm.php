@@ -128,34 +128,8 @@ abstract class MagicForm extends ComponentBase
         // CHECK FOR VALID FORM AND THROW ERROR IF NEEDED
         $this->validateForm();
 
-        // IF FIRST VALIDATION IS OK, VALIDATE CAPTCHA vs GOOGLE
-        // (this prevents to resolve captcha after every form error)
-        if ($this->isReCaptchaEnabled()) {
-
-            // PREPARE RECAPTCHA VALIDATION
-            $rules   = ['g-recaptcha-response'           => 'recaptcha'];
-            $err_msg = ['g-recaptcha-response.recaptcha' => Lang::get('martin.forms::lang.validation.recaptcha_error')];
-
-            // DO SECOND VALIDATION
-            $this->validator = Validator::make($post, $rules, $err_msg);
-
-            // VALIDATE ALL + CAPTCHA EXISTS
-            if ($this->validator->fails()) {
-
-                // THROW ERRORS
-                if ($this->property('inline_errors') == 'display') {
-                    throw new ValidationException($this->validator);
-                } else {
-                    throw new AjaxException($this->exceptionResponse($this->validator, [
-                        'status'  => 'error',
-                        'type'    => 'danger',
-                        'content' => Lang::get('martin.forms::lang.validation.recaptcha_error'),
-                        'errors'  => json_encode($this->validator->messages()->messages()),
-                        'jscript' => $this->property('js_on_error'),
-                    ]));
-                }
-            }
-        }
+        // IF FIRST VALIDATION IS OK, VALIDATE CAPTCHA vs GOOGLE (prevents to resolve captcha after every form error)
+        $this->validateReCaptcha($post);
 
         // REMOVE EXTRA FIELDS FROM STORED DATA
         unset($post['_token'], $post['g-recaptcha-response'], $post['_session_key'], $post['files']);
@@ -225,22 +199,6 @@ abstract class MagicForm extends ComponentBase
             'content' => $message,
             'jscript' => $this->prepareJavaScript(),
         ])];
-    }
-
-    private function exceptionResponse($validator, $params)
-    {
-        // FLASH PARTIAL
-        $flash_partial = $this->property('messages_partial', '@flash.htm');
-
-        // EXCEPTION RESPONSE
-        $response = ['#' . $this->alias . '_forms_flash' => $this->renderPartial($flash_partial, $params)];
-
-        // INCLUDE ERROR FIELDS IF REQUIRED
-        if ($this->property('inline_errors') != 'disabled') {
-            $response['error_fields'] = $validator->messages();
-        }
-
-        return $response;
     }
 
     private function prepareJavaScript()

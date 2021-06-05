@@ -7,6 +7,7 @@ use Illuminate\Support\Facades\Session;
 use Martin\Forms\Classes\BackendHelpers;
 use Winter\Storm\Support\Facades\Config;
 use Winter\Storm\Exception\AjaxException;
+use Winter\Storm\Support\Facades\Validator;
 use Winter\Storm\Exception\ValidationException;
 
 trait RequestValidation
@@ -64,5 +65,69 @@ trait RequestValidation
             'errors'  => json_encode($this->validator->messages()->messages()),
             'jscript' => $this->property('js_on_error'),
         ]));
+    }
+
+    /**
+     * Validate reCaptcha
+     *
+     * @param array $post
+     * @throws AjaxException
+     * @throws ValidationException
+     */
+    private function validateReCaptcha(array $post)
+    {
+        /** CONTINUE IF RECAPTCHA IS DISABLED */
+        if (!$this->isReCaptchaEnabled()) {
+            return;
+        }
+
+        /** PREPARE RECAPTCHA VALIDATION */
+        $rules   = ['g-recaptcha-response'           => 'recaptcha'];
+        $err_msg = ['g-recaptcha-response.recaptcha' => Lang::get('martin.forms::lang.validation.recaptcha_error')];
+
+        /** DO SECOND VALIDATION */
+        $this->validator = Validator::make($post, $rules, $err_msg);
+
+        /** CONTINUE IF VALIDATION PASSES */
+        if ($this->validator->passes()) {
+            return;
+        }
+
+        /** RETURN VALIDATOR OBJECT IF INLINE ERRORS ARE ENABLED */
+        if ($this->property('inline_errors') == 'display') {
+            throw new ValidationException($this->validator);
+        }
+
+        /** THROW ERROR MESSAGES */
+        throw new AjaxException($this->exceptionResponse($this->validator, [
+            'status'  => 'error',
+            'type'    => 'danger',
+            'content' => Lang::get('martin.forms::lang.validation.recaptcha_error'),
+            'errors'  => json_encode($this->validator->messages()->messages()),
+            'jscript' => $this->property('js_on_error'),
+        ]));
+    }
+
+    /**
+     * Return exception response
+     *
+     * @param $validator
+     * @param $params
+     * @return array
+     */
+    private function exceptionResponse($validator, $params): array
+    {
+        /** FLASH PARTIAL */
+        $flash_partial = $this->property('messages_partial', '@flash.htm');
+
+        /** EXCEPTION RESPONSE */
+        $response = ['#' . $this->alias . '_forms_flash' => $this->renderPartial($flash_partial, $params)];
+
+        /** INCLUDE ERROR FIELDS IF REQUIRED */
+        if ($this->property('inline_errors') != 'disabled') {
+            $response['error_fields'] = $validator->messages();
+        }
+
+        return $response;
     }
 }
