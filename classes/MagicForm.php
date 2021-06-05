@@ -122,7 +122,7 @@ abstract class MagicForm extends ComponentBase
         // NICE reCAPTCHA FIELD NAME
         if ($this->isReCaptchaEnabled()) {
             $fields_names = ['g-recaptcha-response' => 'reCAPTCHA'];
-            $validator->setAttributeNames(array_merge($fields_names, $custom_attributes));
+            $this->validator->setAttributeNames(array_merge($fields_names, $custom_attributes));
         }
 
         // CHECK FOR VALID FORM AND THROW ERROR IF NEEDED
@@ -137,20 +137,20 @@ abstract class MagicForm extends ComponentBase
             $err_msg = ['g-recaptcha-response.recaptcha' => Lang::get('martin.forms::lang.validation.recaptcha_error')];
 
             // DO SECOND VALIDATION
-            $validator = Validator::make($post, $rules, $err_msg);
+            $this->validator = Validator::make($post, $rules, $err_msg);
 
             // VALIDATE ALL + CAPTCHA EXISTS
-            if ($validator->fails()) {
+            if ($this->validator->fails()) {
 
                 // THROW ERRORS
                 if ($this->property('inline_errors') == 'display') {
-                    throw new ValidationException($validator);
+                    throw new ValidationException($this->validator);
                 } else {
-                    throw new AjaxException($this->exceptionResponse($validator, [
+                    throw new AjaxException($this->exceptionResponse($this->validator, [
                         'status'  => 'error',
                         'type'    => 'danger',
                         'content' => Lang::get('martin.forms::lang.validation.recaptcha_error'),
-                        'errors'  => json_encode($validator->messages()->messages()),
+                        'errors'  => json_encode($this->validator->messages()->messages()),
                         'jscript' => $this->property('js_on_error'),
                     ]));
                 }
