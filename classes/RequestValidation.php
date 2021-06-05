@@ -9,6 +9,11 @@ use Winter\Storm\Exception\AjaxException;
 
 trait RequestValidation
 {
+    /**
+     * Check for CSRF and throw exception if failed
+     *
+     * @throws AjaxException
+     */
     public function checkCSRF()
     {
         if (Config::get('cms.enableCsrfProtection') && (Session::token() != post('_token'))) {
