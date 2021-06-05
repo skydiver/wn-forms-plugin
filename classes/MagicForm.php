@@ -26,6 +26,14 @@ abstract class MagicForm extends ComponentBase
     use \Martin\Forms\Classes\ReCaptcha;
     use \Martin\Forms\Classes\SharedProperties;
 
+    private $flash_partial;
+
+    public function init()
+    {
+        // FLASH PARTIAL
+        $this->flash_partial = $this->property('messages_partial', '@flash.htm');
+    }
+
     public function onRun()
     {
         $this->page['recaptcha_enabled']       = $this->isReCaptchaEnabled();
@@ -241,7 +249,7 @@ abstract class MagicForm extends ComponentBase
         }
 
         // DISPLAY SUCCESS MESSAGE
-        return ['#' . $this->alias . '_forms_flash' => $this->renderPartial($flash_partial, [
+        return ['#' . $this->alias . '_forms_flash' => $this->renderPartial($this->flash_partial, [
             'status'  => 'success',
             'type'    => 'success',
             'content' => $message,
