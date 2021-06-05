@@ -8,12 +8,31 @@ use Martin\Forms\Classes\Mails\Notification;
 
 trait SendMails
 {
-    private function sendNotification(array $post, $record)
+    /**
+     * Send notification & autoresponse emails
+     *
+     * @param array $post
+     * @param $record
+     */
+    private function sendEmails(array $post, $record)
     {
-        if (!$this->property('mail_enabled')) {
-            return;
+        if ($this->property('mail_enabled')) {
+            $this->sendNotification($post, $record);
         }
 
+        if ($this->property('mail_resp_enabled')) {
+            $this->sendAutoresponse($post, $record);
+        }
+    }
+
+    /**
+     * Send notification email
+     *
+     * @param array $post
+     * @param $record
+     */
+    private function sendNotification(array $post, $record)
+    {
         $notification = App::makeWith(Notification::class, [
             $this->getProperties(), $post, $record, $record->files
         ]);
@@ -21,12 +40,14 @@ trait SendMails
         $notification->send();
     }
 
+    /**
+     * Send autoresponse email
+     *
+     * @param array $post
+     * @param $record
+     */
     private function sendAutoresponse(array $post, $record)
     {
-        if (!$this->property('mail_resp_enabled')) {
-            return;
-        }
-
         $autoresponse = App::makeWith(AutoResponse::class, [
             $this->getProperties(), $post, $record
         ]);

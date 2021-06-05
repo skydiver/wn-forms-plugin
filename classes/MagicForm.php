@@ -161,11 +161,8 @@ abstract class MagicForm extends ComponentBase
             $record->save(null, post('_session_key'));
         }
 
-        /** SEND NOTIFICATION EMAIL */
-        $this->sendNotification($post, $record);
-
-        /** SEND AUTORESPONSE EMAIL */
-        $this->sendAutoresponse($post, $record);
+        /** SEND NOTIFICATION & AUTORESPONSE EMAILS */
+        $this->sendEmails($post, $record);
 
         /** FIRE AFTER SAVE EVENT */
         Event::fire('martin.forms.afterSaveRecord', [&$post, $this, $record]);
