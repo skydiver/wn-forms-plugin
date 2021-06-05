@@ -28,6 +28,7 @@ abstract class MagicForm extends ComponentBase
     use \Martin\Forms\Classes\SharedProperties;
 
     private $flash_partial;
+    private $validator;
 
     public function init()
     {
@@ -116,7 +117,7 @@ abstract class MagicForm extends ComponentBase
         }
 
         // DO FORM VALIDATION
-        $validator = Validator::make($post, $rules, $msgs, $custom_attributes);
+        $this->validator = Validator::make($post, $rules, $msgs, $custom_attributes);
 
         // NICE reCAPTCHA FIELD NAME
         if ($this->isReCaptchaEnabled()) {
@@ -124,31 +125,8 @@ abstract class MagicForm extends ComponentBase
             $validator->setAttributeNames(array_merge($fields_names, $custom_attributes));
         }
 
-        // VALIDATE ALL + CAPTCHA EXISTS
-        if ($validator->fails()) {
-
-            // GET DEFAULT ERROR MESSAGE
-            $message = $this->property('messages_errors');
-
-            // LOOK FOR TRANSLATION
-            if (BackendHelpers::isTranslatePlugin()) {
-                $message = \RainLab\Translate\Models\Message::trans($message);
-            }
-
-            // THROW ERRORS
-            if ($this->property('inline_errors') == 'display') {
-                throw new ValidationException($validator);
-            } else {
-                throw new AjaxException($this->exceptionResponse($validator, [
-                    'status'  => 'error',
-                    'type'    => 'danger',
-                    'title'   => $message,
-                    'list'    => $validator->messages()->all(),
-                    'errors'  => json_encode($validator->messages()->messages()),
-                    'jscript' => $this->property('js_on_error'),
-                ]));
-            }
-        }
+        // CHECK FOR VALID FORM AND THROW ERROR IF NEEDED
+        $this->validateForm();
 
         // IF FIRST VALIDATION IS OK, VALIDATE CAPTCHA vs GOOGLE
         // (this prevents to resolve captcha after every form error)

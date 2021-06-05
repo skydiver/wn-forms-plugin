@@ -6,6 +6,7 @@ use Illuminate\Support\Facades\Lang;
 use Illuminate\Support\Facades\Session;
 use Winter\Storm\Support\Facades\Config;
 use Winter\Storm\Exception\AjaxException;
+use Winter\Storm\Exception\ValidationException;
 
 trait RequestValidation
 {
@@ -14,7 +15,7 @@ trait RequestValidation
      *
      * @throws AjaxException
      */
-    public function checkCSRF()
+    private function checkCSRF()
     {
         if (Config::get('cms.enableCsrfProtection') && (Session::token() != post('_token'))) {
             throw new AjaxException([
@@ -25,5 +26,42 @@ trait RequestValidation
                 ])
             ]);
         }
+    }
+
+    /**
+     * Check for valid form and throw errors if needed
+     *
+     * @throws AjaxException
+     * @throws ValidationException
+     */
+    private function validateForm()
+    {
+        /** CONTINUE IF VALIDATION PASSES */
+        if ($this->validator->passes()) {
+            return;
+        }
+
+        /** GET DEFAULT ERROR MESSAGE */
+        $message = $this->property('messages_errors');
+
+        /** TRANSLATE ERROR MESSAGE */
+        if (BackendHelpers::isTranslatePlugin()) {
+            $message = \RainLab\Translate\Models\Message::trans($message);
+        }
+
+        /** RETURN VALIDATOR OBJECT IF INLINE ERRORS ARE ENABLED */
+        if ($this->property('inline_errors') == 'display') {
+            throw new ValidationException($this->validator);
+        }
+
+        /** THROW ERROR MESSAGES */
+        throw new AjaxException($this->exceptionResponse($this->validator, [
+            'status'  => 'error',
+            'type'    => 'danger',
+            'title'   => $message,
+            'list'    => $this->validator->messages()->all(),
+            'errors'  => json_encode($this->validator->messages()->messages()),
+            'jscript' => $this->property('js_on_error'),
+        ]));
     }
 }
