@@ -24,6 +24,7 @@ abstract class MagicForm extends ComponentBase
 {
 
     use \Martin\Forms\Classes\ReCaptcha;
+    use \Martin\Forms\Classes\RequestValidation;
     use \Martin\Forms\Classes\SharedProperties;
 
     private $flash_partial;
@@ -66,17 +67,8 @@ abstract class MagicForm extends ComponentBase
 
     public function onFormSubmit()
     {
-        // FLASH PARTIAL
-        $flash_partial = $this->property('messages_partial', '@flash.htm');
-
         // CSRF CHECK
-        if (Config::get('cms.enableCsrfProtection') && (Session::token() != post('_token'))) {
-            throw new AjaxException(['#' . $this->alias . '_forms_flash' => $this->renderPartial($flash_partial, [
-                'status'  => 'error',
-                'type'    => 'danger',
-                'content' => Lang::get('martin.forms::lang.components.shared.csrf_error'),
-            ])]);
-        }
+        $this->checkCSRF();
 
         // LOAD TRANSLATOR PLUGIN
         if (BackendHelpers::isTranslatePlugin()) {
