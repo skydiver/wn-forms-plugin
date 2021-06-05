@@ -4,6 +4,7 @@ namespace Martin\Forms\Classes\Traits;
 
 use Illuminate\Support\Facades\Lang;
 use Illuminate\Support\Facades\Session;
+use Martin\Forms\Classes\BackendHelpers;
 use Winter\Storm\Support\Facades\Config;
 use Winter\Storm\Exception\AjaxException;
 use Winter\Storm\Exception\ValidationException;
