@@ -23,9 +23,9 @@ use Winter\Storm\Exception\ValidationException;
 abstract class MagicForm extends ComponentBase
 {
 
-    use \Martin\Forms\Classes\ReCaptcha;
-    use \Martin\Forms\Classes\RequestValidation;
-    use \Martin\Forms\Classes\SharedProperties;
+    use \Martin\Forms\Classes\Traits\ReCaptcha;
+    use \Martin\Forms\Classes\Traits\RequestValidation;
+    use \Martin\Forms\Classes\Traits\SharedProperties;
 
     private $flash_partial;
     private $validator;

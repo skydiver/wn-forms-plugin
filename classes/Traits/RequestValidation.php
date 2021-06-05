@@ -1,6 +1,6 @@
 <?php
 
-namespace Martin\Forms\Classes;
+namespace Martin\Forms\Classes\Traits;
 
 use Illuminate\Support\Facades\Lang;
 use Illuminate\Support\Facades\Session;
