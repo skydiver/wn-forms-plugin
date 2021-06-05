@@ -25,6 +25,7 @@ abstract class MagicForm extends ComponentBase
 
     use \Martin\Forms\Classes\Traits\ReCaptcha;
     use \Martin\Forms\Classes\Traits\RequestValidation;
+    use \Martin\Forms\Classes\Traits\SendMails;
     use \Martin\Forms\Classes\Traits\SharedProperties;
 
     private $flash_partial;
@@ -134,7 +135,7 @@ abstract class MagicForm extends ComponentBase
         // REMOVE EXTRA FIELDS FROM STORED DATA
         unset($post['_token'], $post['g-recaptcha-response'], $post['_session_key'], $post['files']);
 
-        // FIRE BEFORE SAVE EVENT
+        /** FIRE BEFORE SAVE EVENT */
         Event::fire('martin.forms.beforeSaveRecord', [&$post, $this]);
 
         if (count($custom_attributes)) {
@@ -160,23 +161,13 @@ abstract class MagicForm extends ComponentBase
             $record->save(null, post('_session_key'));
         }
 
-        // SEND NOTIFICATION EMAIL
-        if ($this->property('mail_enabled')) {
-            $notification = App::makeWith(Notification::class, [
-                $this->getProperties(), $post, $record, $record->files
-            ]);
-            $notification->send();
-        }
+        /** SEND NOTIFICATION EMAIL */
+        $this->sendNotification($post, $record);
 
-        // SEND AUTORESPONSE EMAIL
-        if ($this->property('mail_resp_enabled')) {
-            $autoresponse = App::makeWith(AutoResponse::class, [
-                $this->getProperties(), $post, $record
-            ]);
-            $autoresponse->send();
-        }
+        /** SEND AUTORESPONSE EMAIL */
+        $this->sendAutoresponse($post, $record);
 
-        // FIRE AFTER SAVE EVENT
+        /** FIRE AFTER SAVE EVENT */
         Event::fire('martin.forms.afterSaveRecord', [&$post, $this, $record]);
 
         // CHECK FOR REDIRECT
