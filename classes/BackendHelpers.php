@@ -2,8 +2,8 @@
 
 namespace Martin\Forms\Classes;
 
-use Backend;
-use BackendAuth;
+use Backend\Facades\Backend;
+use Backend\Facades\BackendAuth;
 
 class BackendHelpers
 {
@@ -36,6 +36,13 @@ class BackendHelpers
         return class_exists('\RainLab\Translate\Classes\Translator') && class_exists('\RainLab\Translate\Models\Message');
     }
 
+    /**
+     * Recursively apply a callback function to every items in give array
+     *
+     * @param $callback
+     * @param $array
+     * @return array|false[]
+     */
     public static function array_map_recursive($callback, $array)
     {
         $func = function ($item) use (&$func, &$callback) {
@@ -85,9 +92,9 @@ class BackendHelpers
     /**
      * Extract string from curly braces
      *
-     * @param string $pattern     Pattern to replace
-     * @param string $replacement Replacement string
-     * @param string $subject     Strings to replace
+     * @param string      $pattern     Pattern to replace
+     * @param string|null $replacement Replacement string
+     * @param string      $subject     Strings to replace
      *
      * @return string
      */
