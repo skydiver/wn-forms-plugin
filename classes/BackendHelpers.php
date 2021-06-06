@@ -36,6 +36,15 @@ class BackendHelpers
         return class_exists('\RainLab\Translate\Classes\Translator') && class_exists('\RainLab\Translate\Models\Message');
     }
 
+    public static function array_map_recursive($callback, $array)
+    {
+        $func = function ($item) use (&$func, &$callback) {
+            return is_array($item) ? array_map($func, $item) : call_user_func($callback, $item);
+        };
+
+        return array_map($func, $array);
+    }
+
     /**
      * Render an array|object as HTML list (UL > LI)
      *

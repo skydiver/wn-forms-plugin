@@ -23,6 +23,7 @@ use Winter\Storm\Exception\ValidationException;
 abstract class MagicForm extends ComponentBase
 {
 
+    use \Martin\Forms\Classes\Traits\PostData;
     use \Martin\Forms\Classes\Traits\ReCaptcha;
     use \Martin\Forms\Classes\Traits\RequestValidation;
     use \Martin\Forms\Classes\Traits\SendMails;
@@ -80,25 +81,8 @@ abstract class MagicForm extends ComponentBase
             \RainLab\Translate\Models\Message::setContext($locale);
         }
 
-        // FILTER ALLOWED FIELDS
-        $allow = $this->property('allowed_fields');
-        if (is_array($allow) && !empty($allow)) {
-            foreach ($allow as $field) {
-                $post[$field] = post($field);
-            }
-            if ($this->isReCaptchaEnabled()) {
-                $post['g-recaptcha-response'] = post('g-recaptcha-response');
-            }
-        } else {
-            $post = post();
-        }
-
-        // SANITIZE FORM DATA
-        if ($this->property('sanitize_data') == 'htmlspecialchars') {
-            $post = $this->array_map_recursive(function ($value) {
-                return htmlspecialchars($value, ENT_QUOTES);
-            }, $post);
-        }
+        /** PREPARE FORM DATA */
+        $post = $this->preparePost();
 
         // VALIDATION PARAMETERS
         $rules = (array)$this->property('rules');
@@ -225,15 +209,6 @@ abstract class MagicForm extends ComponentBase
         }
 
         return $ip;
-    }
-
-    private function array_map_recursive($callback, $array)
-    {
-        $func = function ($item) use (&$func, &$callback) {
-            return is_array($item) ? array_map($func, $item) : call_user_func($callback, $item);
-        };
-
-        return array_map($func, $array);
     }
 
     private function attachFiles(Record $record)

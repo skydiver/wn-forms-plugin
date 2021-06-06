@@ -19,7 +19,7 @@ trait RequestValidation
      */
     private function checkCSRF()
     {
-        if (Config::get('cms.enableCsrfProtection') && (Session::token() != post('_token'))) {
+        if (Config::get('cms.enableCsrfProtection') && (Session::token() != input('_token'))) {
             throw new AjaxException([
                 '#' . $this->alias . '_forms_flash' => $this->renderPartial($this->flash_partial, [
                     'status'  => 'error',
