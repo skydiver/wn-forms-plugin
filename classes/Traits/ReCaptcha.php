@@ -1,6 +1,6 @@
 <?php
 
-namespace Martin\Forms\Classes;
+namespace Martin\Forms\Classes\Traits;
 
 use Martin\Forms\Classes\BackendHelpers;
 use Martin\Forms\Models\Settings;

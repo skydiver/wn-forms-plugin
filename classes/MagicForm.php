@@ -23,8 +23,20 @@ use Winter\Storm\Exception\ValidationException;
 abstract class MagicForm extends ComponentBase
 {
 
-    use \Martin\Forms\Classes\ReCaptcha;
-    use \Martin\Forms\Classes\SharedProperties;
+    use \Martin\Forms\Classes\Traits\PostData;
+    use \Martin\Forms\Classes\Traits\ReCaptcha;
+    use \Martin\Forms\Classes\Traits\RequestValidation;
+    use \Martin\Forms\Classes\Traits\SendMails;
+    use \Martin\Forms\Classes\Traits\SharedProperties;
+
+    private $flash_partial;
+    private $validator;
+
+    public function init()
+    {
+        // FLASH PARTIAL
+        $this->flash_partial = $this->property('messages_partial', '@flash.htm');
+    }
 
     public function onRun()
     {
@@ -58,17 +70,8 @@ abstract class MagicForm extends ComponentBase
 
     public function onFormSubmit()
     {
-        // FLASH PARTIAL
-        $flash_partial = $this->property('messages_partial', '@flash.htm');
-
         // CSRF CHECK
-        if (Config::get('cms.enableCsrfProtection') && (Session::token() != post('_token'))) {
-            throw new AjaxException(['#' . $this->alias . '_forms_flash' => $this->renderPartial($flash_partial, [
-                'status'  => 'error',
-                'type'    => 'danger',
-                'content' => Lang::get('martin.forms::lang.components.shared.csrf_error'),
-            ])]);
-        }
+        $this->checkCSRF();
 
         // LOAD TRANSLATOR PLUGIN
         if (BackendHelpers::isTranslatePlugin()) {
@@ -78,25 +81,8 @@ abstract class MagicForm extends ComponentBase
             \RainLab\Translate\Models\Message::setContext($locale);
         }
 
-        // FILTER ALLOWED FIELDS
-        $allow = $this->property('allowed_fields');
-        if (is_array($allow) && !empty($allow)) {
-            foreach ($allow as $field) {
-                $post[$field] = post($field);
-            }
-            if ($this->isReCaptchaEnabled()) {
-                $post['g-recaptcha-response'] = post('g-recaptcha-response');
-            }
-        } else {
-            $post = post();
-        }
-
-        // SANITIZE FORM DATA
-        if ($this->property('sanitize_data') == 'htmlspecialchars') {
-            $post = $this->array_map_recursive(function ($value) {
-                return htmlspecialchars($value, ENT_QUOTES);
-            }, $post);
-        }
+        /** PREPARE FORM DATA */
+        $post = $this->preparePost();
 
         // VALIDATION PARAMETERS
         $rules = (array)$this->property('rules');
@@ -116,73 +102,24 @@ abstract class MagicForm extends ComponentBase
         }
 
         // DO FORM VALIDATION
-        $validator = Validator::make($post, $rules, $msgs, $custom_attributes);
+        $this->validator = Validator::make($post, $rules, $msgs, $custom_attributes);
 
         // NICE reCAPTCHA FIELD NAME
         if ($this->isReCaptchaEnabled()) {
             $fields_names = ['g-recaptcha-response' => 'reCAPTCHA'];
-            $validator->setAttributeNames(array_merge($fields_names, $custom_attributes));
+            $this->validator->setAttributeNames(array_merge($fields_names, $custom_attributes));
         }
 
-        // VALIDATE ALL + CAPTCHA EXISTS
-        if ($validator->fails()) {
+        // CHECK FOR VALID FORM AND THROW ERROR IF NEEDED
+        $this->validateForm();
 
-            // GET DEFAULT ERROR MESSAGE
-            $message = $this->property('messages_errors');
-
-            // LOOK FOR TRANSLATION
-            if (BackendHelpers::isTranslatePlugin()) {
-                $message = \RainLab\Translate\Models\Message::trans($message);
-            }
-
-            // THROW ERRORS
-            if ($this->property('inline_errors') == 'display') {
-                throw new ValidationException($validator);
-            } else {
-                throw new AjaxException($this->exceptionResponse($validator, [
-                    'status'  => 'error',
-                    'type'    => 'danger',
-                    'title'   => $message,
-                    'list'    => $validator->messages()->all(),
-                    'errors'  => json_encode($validator->messages()->messages()),
-                    'jscript' => $this->property('js_on_error'),
-                ]));
-            }
-        }
-
-        // IF FIRST VALIDATION IS OK, VALIDATE CAPTCHA vs GOOGLE
-        // (this prevents to resolve captcha after every form error)
-        if ($this->isReCaptchaEnabled()) {
-
-            // PREPARE RECAPTCHA VALIDATION
-            $rules   = ['g-recaptcha-response'           => 'recaptcha'];
-            $err_msg = ['g-recaptcha-response.recaptcha' => Lang::get('martin.forms::lang.validation.recaptcha_error')];
-
-            // DO SECOND VALIDATION
-            $validator = Validator::make($post, $rules, $err_msg);
-
-            // VALIDATE ALL + CAPTCHA EXISTS
-            if ($validator->fails()) {
-
-                // THROW ERRORS
-                if ($this->property('inline_errors') == 'display') {
-                    throw new ValidationException($validator);
-                } else {
-                    throw new AjaxException($this->exceptionResponse($validator, [
-                        'status'  => 'error',
-                        'type'    => 'danger',
-                        'content' => Lang::get('martin.forms::lang.validation.recaptcha_error'),
-                        'errors'  => json_encode($validator->messages()->messages()),
-                        'jscript' => $this->property('js_on_error'),
-                    ]));
-                }
-            }
-        }
+        // IF FIRST VALIDATION IS OK, VALIDATE CAPTCHA vs GOOGLE (prevents to resolve captcha after every form error)
+        $this->validateReCaptcha($post);
 
         // REMOVE EXTRA FIELDS FROM STORED DATA
         unset($post['_token'], $post['g-recaptcha-response'], $post['_session_key'], $post['files']);
 
-        // FIRE BEFORE SAVE EVENT
+        /** FIRE BEFORE SAVE EVENT */
         Event::fire('martin.forms.beforeSaveRecord', [&$post, $this]);
 
         if (count($custom_attributes)) {
@@ -208,23 +145,10 @@ abstract class MagicForm extends ComponentBase
             $record->save(null, post('_session_key'));
         }
 
-        // SEND NOTIFICATION EMAIL
-        if ($this->property('mail_enabled')) {
-            $notification = App::makeWith(Notification::class, [
-                $this->getProperties(), $post, $record, $record->files
-            ]);
-            $notification->send();
-        }
+        /** SEND NOTIFICATION & AUTORESPONSE EMAILS */
+        $this->sendEmails($post, $record);
 
-        // SEND AUTORESPONSE EMAIL
-        if ($this->property('mail_resp_enabled')) {
-            $autoresponse = App::makeWith(AutoResponse::class, [
-                $this->getProperties(), $post, $record
-            ]);
-            $autoresponse->send();
-        }
-
-        // FIRE AFTER SAVE EVENT
+        /** FIRE AFTER SAVE EVENT */
         Event::fire('martin.forms.afterSaveRecord', [&$post, $this, $record]);
 
         // CHECK FOR REDIRECT
@@ -241,28 +165,12 @@ abstract class MagicForm extends ComponentBase
         }
 
         // DISPLAY SUCCESS MESSAGE
-        return ['#' . $this->alias . '_forms_flash' => $this->renderPartial($flash_partial, [
+        return ['#' . $this->alias . '_forms_flash' => $this->renderPartial($this->flash_partial, [
             'status'  => 'success',
             'type'    => 'success',
             'content' => $message,
             'jscript' => $this->prepareJavaScript(),
         ])];
-    }
-
-    private function exceptionResponse($validator, $params)
-    {
-        // FLASH PARTIAL
-        $flash_partial = $this->property('messages_partial', '@flash.htm');
-
-        // EXCEPTION RESPONSE
-        $response = ['#' . $this->alias . '_forms_flash' => $this->renderPartial($flash_partial, $params)];
-
-        // INCLUDE ERROR FIELDS IF REQUIRED
-        if ($this->property('inline_errors') != 'disabled') {
-            $response['error_fields'] = $validator->messages();
-        }
-
-        return $response;
     }
 
     private function prepareJavaScript()
@@ -301,15 +209,6 @@ abstract class MagicForm extends ComponentBase
         }
 
         return $ip;
-    }
-
-    private function array_map_recursive($callback, $array)
-    {
-        $func = function ($item) use (&$func, &$callback) {
-            return is_array($item) ? array_map($func, $item) : call_user_func($callback, $item);
-        };
-
-        return array_map($func, $array);
     }
 
     private function attachFiles(Record $record)
