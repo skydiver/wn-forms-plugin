@@ -1,5 +1,5 @@
 {
-    "name": "martin/wn-forms-plugin",
+    "name": "willouch/wn-forms-plugin",
     "type": "winter-plugin",
     "description": "Create easy (and almost magic) AJAX forms",
     "keywords": ["winter", "cms", "plugin", "forms", "magic forms"],
